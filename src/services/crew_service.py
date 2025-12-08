@@ -1,5 +1,5 @@
 """Service for managing CrewAI operations."""
-import warnings
+import warnings, re, time
 from typing import List, Dict, Any
 from crewai import LLM
 from mcp import StdioServerParameters
@@ -16,6 +16,7 @@ class CrewService:
         self.tools = None
         self.mcp_adapter = None
         self.initialized = False
+        self.max_retries = 3
     
     def initialize(self, model_config: Dict[str, Any], db_path: str) -> tuple[bool, str, List[str]]:
         """
@@ -61,13 +62,6 @@ class CrewService:
     def process_message(self, message: str, customer_name: str) -> str:
         """
         Process a customer message through the crew.
-        
-        Args:
-            message: Customer's message
-            customer_name: Customer's name
-            
-        Returns:
-            Crew's response
         """
         if not self.initialized:
             raise ValueError("Crew not initialized. Please initialize first.")
@@ -77,17 +71,39 @@ class CrewService:
             'user_id': customer_name,
             'customer_name': customer_name
         }
-        
-        flow = RestaurantServiceFlow(max_rpm=10)
-        result = flow.kickoff(inputs=inputs)
+        attempt = 0 
+        flow = RestaurantServiceFlow()
 
-        # Extract response
-        if hasattr(result, 'raw'):
-            return result.raw
-        elif hasattr(result, 'output'):
-            return result.output #type: ignore
-        else:
-            return str(result)
+        while attempt < self.max_retries:
+            try:
+                result = flow.kickoff(inputs=inputs)
+
+                if hasattr(result, 'raw'):
+                    return result.raw
+                elif hasattr(result, 'output'):
+                    return result.output
+                return str(result)
+
+            except Exception as e:
+                msg = str(e)
+
+                # Detect 429 RESOURCE_EXHAUSTED
+                if "RESOURCE_EXHAUSTED" in msg or "429" in msg:
+                    print("❗ Rate limit hit: 429 RESOURCE_EXHAUSTED")
+
+                    match = re.search(r"'retryDelay':\s*'(\d+\.?\d*)s'", msg)
+                    if match:
+                        delay = float(match.group(1))
+                    else:
+                        delay = 30  # fallback
+
+                    print(f"⏳ Waiting {delay} seconds before retrying...")
+                    time.sleep(delay)
+
+                    attempt += 1
+                    continue
+                raise e
+        raise RuntimeError("Exceeded max retries due to repeated rate limits")
     
     def cleanup(self):
         """Cleanup resources."""

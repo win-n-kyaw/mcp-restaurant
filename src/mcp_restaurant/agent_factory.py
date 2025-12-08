@@ -22,6 +22,7 @@ def agent_factory(agent_key, task_key, user_id, mem0_client, tools=None, **kwarg
         goal = agents_config[agent_key]['goal'],
         backstory = agents_config[agent_key]['backstory'],
         memory = True,
+        max_rpm=4,
         verbose = True
     )
     
