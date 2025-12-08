@@ -78,7 +78,7 @@ class CrewService:
             'customer_name': customer_name
         }
         
-        flow = RestaurantServiceFlow()
+        flow = RestaurantServiceFlow(max_rpm=10)
         result = flow.kickoff(inputs=inputs)
 
         # Extract response
