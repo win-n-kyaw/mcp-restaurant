@@ -25,12 +25,6 @@ Use the virtual environment
 source .venv/bin/activate
 ```
 
-Run the application with streamlit
-
-```bash
-uv run streamlit run src/app.py
-```
-
 ### Directory Structure
 
 ```bash
@@ -84,7 +78,7 @@ uv run streamlit run src/app.py
 To kickstart your crew of AI agents and begin task execution, run this from the root folder of your project:
 
 ```bash
-$ crewai run
+uv run streamlit run src/app.py
 ```
 
 ## Understanding Your Crew
