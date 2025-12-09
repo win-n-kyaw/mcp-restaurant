@@ -36,7 +36,7 @@ class CrewService:
             }
             if model_config.get("base_url"):
                 llm_config["base_url"] = model_config["base_url"]
-            
+            print(llm_config.values())
             self.llm = LLM(**llm_config)
             
             # Create server parameters
@@ -72,7 +72,7 @@ class CrewService:
             'customer_name': customer_name
         }
         attempt = 0 
-        flow = RestaurantServiceFlow()
+        flow = RestaurantServiceFlow(llm=self.llm)
 
         while attempt < self.max_retries:
             try:

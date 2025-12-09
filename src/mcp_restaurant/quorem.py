@@ -35,10 +35,9 @@ class RestaurantServiceState(BaseModel):
     final_response: str = ""
 
 class RestaurantServiceFlow(Flow[RestaurantServiceState]):
-    # def __init__(self, persistence: FlowPersistence | None = None, tracing: bool | None = None, **kwargs: Any) -> None:
-    #     super().__init__(persistence, tracing, **kwargs)
-    #     if kwargs['max_rpm']:
-    #         self.rpm_controller = RPMController(max_rpm=kwargs['max_rpm'])
+    def __init__(self, llm=None, persistence: FlowPersistence | None = None, tracing: bool | None = None, **kwargs: Any) -> None:
+        super().__init__(persistence, tracing, **kwargs)
+        self.llm = llm  # Store the LLM instance
 
     @start()
     def classify_intent(self):
@@ -46,6 +45,7 @@ class RestaurantServiceFlow(Flow[RestaurantServiceState]):
         # if self.rpm_controller.check_or_wait():
         intent = create_agent_task(
             'intent_classifier',
+            llm=self.llm,
             mem0_client=mem0_client,
             tools=None,
             enquiry=self.state.enquiry,
@@ -68,8 +68,9 @@ class RestaurantServiceFlow(Flow[RestaurantServiceState]):
         try:
             response = create_agent_task(
                 specialist_key,
+                llm=self.llm, 
                 tools=tools,
-                mem0_client=mem0_client, 
+                mem0_client=mem0_client,
                 enquiry=self.state.enquiry, 
                 customer_name=self.state.customer_name,
                 user_id=self.state.user_id
@@ -89,6 +90,7 @@ class RestaurantServiceFlow(Flow[RestaurantServiceState]):
         final_response = create_agent_task(
             'response_coordinator',
             tools=None,
+            llm=self.llm,
             mem0_client=mem0_client,
             enquiry=self.state.enquiry,
             specialist_response=self.state.specialist_response,

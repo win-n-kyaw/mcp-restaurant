@@ -1,0 +1,85 @@
+Restaurant Management System Knowledge Base
+Database Overview
+This is a restaurant management system with five core tables managing customers, reservations, menu items, orders, and order details. The system enforces referential integrity with foreign keys enabled.
+
+Table Structures
+customers
+Stores customer information for reservations and orders.
+Columns:
+id (INTEGER, PRIMARY KEY, AUTOINCREMENT): Unique customer identifier
+full_name (TEXT, NOT NULL): Customer's full name
+phone (TEXT, NOT NULL): Contact phone number
+email (TEXT, NULLABLE): Customer's email address
+created_at (DATETIME, DEFAULT CURRENT_TIMESTAMP): Record creation timestamp
+
+Key Relationships:
+Referenced by reservations.customer_id
+Referenced by orders.customer_id
+
+
+reservations
+Manages table reservations for customers.
+Columns:
+id (INTEGER, PRIMARY KEY, AUTOINCREMENT): Unique reservation identifier
+customer_id (INTEGER, NOT NULL, FOREIGN KEY): Links to customers table
+reservation_time (DATETIME, NOT NULL): Scheduled reservation date/time
+num_guests (INTEGER, NOT NULL, CHECK > 0): Number of guests (must be positive)
+created_at (DATETIME, DEFAULT CURRENT_TIMESTAMP): Record creation timestamp
+
+Key Relationships:
+customer_id references customers(id)
+
+Indexes:
+idx_reservations_customer_id on customer_id
+
+
+menu_items
+Catalog of available menu items with pricing and availability.
+Columns:
+id (INTEGER, PRIMARY KEY, AUTOINCREMENT): Unique menu item identifier
+name (TEXT, NOT NULL): Item name
+description (TEXT, NULLABLE): Item description
+category (TEXT, NOT NULL): Menu category (e.g., appetizers, entrees, desserts, beverages)
+price (DECIMAL(10,2), NOT NULL): Item price
+is_available (INTEGER, DEFAULT 1): Availability flag (1 = available, 0 = unavailable)
+
+Key Relationships:
+Referenced by order_items.menu_item_id
+
+Indexes:
+idx_menu_items_category on category
+
+
+orders
+Tracks customer orders with status and total amount.
+Columns:
+id (INTEGER, PRIMARY KEY, AUTOINCREMENT): Unique order identifier
+customer_id (INTEGER, NOT NULL, FOREIGN KEY): Links to customers table
+order_time (DATETIME, NOT NULL, DEFAULT CURRENT_TIMESTAMP): Order placement timestamp
+status (TEXT, NOT NULL, DEFAULT 'pending'): Order status (e.g., 'pending', 'preparing', 'completed', 'cancelled')
+total_amount (DECIMAL(10,2), DEFAULT 0): Total order cost
+
+Key Relationships:
+customer_id references customers(id)
+Parent to order_items table
+
+Indexes:
+idx_orders_customer_id on customer_id
+
+
+order_items
+Line items for each order, linking orders to menu items.
+Columns:
+id (INTEGER, PRIMARY KEY, AUTOINCREMENT): Unique order item identifier
+order_id (INTEGER, NOT NULL, FOREIGN KEY): Links to orders table
+menu_item_id (INTEGER, NOT NULL, FOREIGN KEY): Links to menu_items table
+quantity (INTEGER, NOT NULL, CHECK > 0): Quantity ordered (must be positive)
+unit_price (DECIMAL(10,2), NOT NULL): Price per unit at time of order
+total_price (DECIMAL(10,2), COMPUTED/STORED): Automatically calculated as quantity * unit_price
+
+Key Relationships:
+order_id references orders(id)
+menu_item_id references menu_items(id)
+
+Indexes:
+idx_order_items_order_id on order_id

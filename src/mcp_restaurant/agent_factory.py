@@ -1,8 +1,13 @@
 from crewai import Agent, Task
 from mcp_restaurant.config import Config
+from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
 
 agents_config = Config.load_agents()
 tasks_config = Config.load_tasks()
+
+db_knowledge = TextFileKnowledgeSource(
+    file_paths=["database.txt"]
+)
 
 AGENT_REGISTRY = {
     'intent_classifier': ('intent_classifier', 'classify_intent_task'),
@@ -13,7 +18,7 @@ AGENT_REGISTRY = {
     'response_coordinator': ('response_coordinator', 'coordinate_response_task')
 }
 
-def agent_factory(agent_key, task_key, user_id, mem0_client, tools=None, **kwargs) -> str:
+def agent_factory(agent_key, task_key, user_id, mem0_client, llm, tools=None, **kwargs) -> str:
     # Retrieve relevant memories for this query
     memory_context = mem0_client.retrieve_memories(user_id, kwargs.get('enquiry', ''))
     
@@ -22,6 +27,10 @@ def agent_factory(agent_key, task_key, user_id, mem0_client, tools=None, **kwarg
         goal = agents_config[agent_key]['goal'],
         backstory = agents_config[agent_key]['backstory'],
         memory = True,
+        knowledge_sources=[db_knowledge],
+        max_iter=3,
+        llm=llm,
+        cache = False,
         max_rpm=4,
         verbose = True
     )
@@ -41,6 +50,6 @@ def agent_factory(agent_key, task_key, user_id, mem0_client, tools=None, **kwarg
     result = task.execute_sync().raw
     return result
 
-def create_agent_task(specialist_key: str, tools, mem0_client, user_id: str, **kwargs):
+def create_agent_task(specialist_key: str, tools, mem0_client, llm, user_id: str, **kwargs):
     agent_key, task_key = AGENT_REGISTRY[specialist_key]
-    return agent_factory(agent_key, task_key, user_id, mem0_client, tools, **kwargs)
+    return agent_factory(agent_key, task_key, user_id, mem0_client, llm, tools, **kwargs)
