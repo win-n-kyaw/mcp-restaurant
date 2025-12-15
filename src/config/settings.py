@@ -12,11 +12,6 @@ class ModelConfig:
     base_url: Optional[str] = None
 
 @dataclass
-class DatabaseConfig:
-    """Database configuration settings."""
-    db_path: str
-
-@dataclass
 class AppConfig:
     """Application configuration."""
     customer_name: str = "Guest"
@@ -45,11 +40,3 @@ class ConfigManager:
             }
         }
         return defaults.get(provider, defaults["OpenAI"])
-    
-    @staticmethod
-    def get_default_db_path() -> str:
-        """Get default database path."""
-        return os.getenv(
-            'DB_PATH',
-            '/Users/winnaingkyaw/crew-ai/crewai-mcp/mcp_restaurant/db/restaurant.db'
-        )

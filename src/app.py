@@ -28,8 +28,7 @@ if 'crew_service' not in st.session_state:
 config = sidebar.render(config_manager)
 actions = sidebar.render_actions()
 sidebar.render_status(
-    st.session_state.crew_initialized,
-    st.session_state.tool_names
+    st.session_state.crew_initialized
 )
 
 # Handle actions
@@ -41,13 +40,11 @@ if actions["initialize"]:
     }
     
     with st.spinner("Initializing crew..."):
-        success, message, tool_names = st.session_state.crew_service.initialize(
-            model_config,
-            config["db_path"]
+        success, message = st.session_state.crew_service.initialize(
+            model_config
         )
         
         st.session_state.crew_initialized = success
-        st.session_state.tool_names = tool_names
         st.session_state.customer_name = config["customer_name"]
         
         if success:

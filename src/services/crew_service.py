@@ -1,9 +1,7 @@
 """Service for managing CrewAI operations."""
 import warnings, re, time
-from typing import List, Dict, Any
+from typing import Dict, Any
 from crewai import LLM
-from mcp import StdioServerParameters
-from crewai_tools import MCPServerAdapter
 from mcp_restaurant.flow import TestFlow
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
@@ -13,12 +11,10 @@ class CrewService:
     
     def __init__(self):
         self.llm = None
-        self.tools = None
-        self.mcp_adapter = None
         self.initialized = False
         self.max_retries = 3
     
-    def initialize(self, model_config: Dict[str, Any], db_path: str) -> tuple[bool, str, List[str]]:
+    def initialize(self, model_config: Dict[str, Any]) -> tuple[bool, str]:
         """
         Initialize the crew with given configuration.
         
@@ -38,26 +34,13 @@ class CrewService:
                 llm_config["base_url"] = model_config["base_url"]
             print(llm_config.values())
             self.llm = LLM(**llm_config)
-            
-            # Create server parameters
-            server_params = StdioServerParameters(
-                command="mcp-server-sqlite",
-                args=["--db-path", db_path]
-            )
-            
-            # Initialize MCP adapter
-            self.mcp_adapter = MCPServerAdapter(server_params)
-            self.mcp_adapter.__enter__()
-            self.tools = self.mcp_adapter.tools
-            
             self.initialized = True
-            tool_names = [tool.name for tool in self.tools]
-            
-            return True, "Crew initialized successfully!", tool_names
+
+            return True, "Crew initialized successfully!"
             
         except Exception as e:
             self.initialized = False
-            return False, f"Error initializing crew: {str(e)}", []
+            return False, f"Error initializing crew: {str(e)}"
     
     def process_message(self, message: str, customer_name: str) -> str:
         """
@@ -107,10 +90,4 @@ class CrewService:
     
     def cleanup(self):
         """Cleanup resources."""
-        if self.mcp_adapter:
-            try:
-                self.mcp_adapter.__exit__(None, None, None)
-            except:
-                pass
-            self.mcp_adapter = None
         self.initialized = False

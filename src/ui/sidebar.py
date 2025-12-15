@@ -49,16 +49,6 @@ class Sidebar:
             
             st.divider()
             
-            # Database Settings
-            st.header("Database Settings")
-            db_path = st.text_input(
-                "Database Path",
-                value=config_manager.get_default_db_path(),
-                help="Path to your SQLite database"
-            )
-            
-            st.divider()
-            
             # Customer Info
             st.header("Customer Info")
             customer_name = st.text_input(
@@ -74,7 +64,6 @@ class Sidebar:
                 "model_name": model_name,
                 "api_key": api_key,
                 "base_url": base_url,
-                "db_path": db_path,
                 "customer_name": customer_name
             }
     
@@ -103,15 +92,11 @@ class Sidebar:
             }
     
     @staticmethod
-    def render_status(initialized: bool, tool_names: list = None): #type: ignore
+    def render_status(initialized: bool): #type: ignore
         """Render status information."""
         with st.sidebar:
             st.divider()
             if initialized:
                 st.success("✅ Crew Status: Active")
-                if tool_names:
-                    with st.expander("Available Tools"):
-                        for tool in tool_names:
-                            st.text(f"• {tool}")
             else:
                 st.warning("⚠️ Crew Status: Not Initialized")
