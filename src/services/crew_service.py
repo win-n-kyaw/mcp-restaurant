@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 from crewai import LLM
 from mcp import StdioServerParameters
 from crewai_tools import MCPServerAdapter
-from mcp_restaurant.quorem import RestaurantServiceFlow, RestaurantServiceState
+from mcp_restaurant.flow import TestFlow
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
@@ -72,7 +72,7 @@ class CrewService:
             'customer_name': customer_name
         }
         attempt = 0 
-        flow = RestaurantServiceFlow(llm=self.llm)
+        flow = TestFlow(llm=self.llm)
 
         while attempt < self.max_retries:
             try:

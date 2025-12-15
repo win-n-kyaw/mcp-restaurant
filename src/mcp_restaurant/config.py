@@ -11,6 +11,11 @@ class Config:
     def load_tasks():
         with open('src/mcp_restaurant/config/tasks.yaml') as f:
             return yaml.safe_load(f)
+        
+    @staticmethod
+    def load_skills():
+        with open('src/mcp_restaurant/config/skills.yaml') as f:
+            return yaml.safe_load(f)
 
     @staticmethod
     def get_db_path():
